@@ -277,7 +277,10 @@ class BaseModel(metaclass=_model_construction.ModelMetaclass):
         """
         # `__tracebackhide__` tells pytest and some other tools to omit this function from tracebacks
         __tracebackhide__ = True
-        for name, field in self.__class__.__pydantic_fields__.items():
+        # BaseModel itself has no __pydantic_fields__. Touching it here used to
+        # raise AttributeError before the "cannot be instantiated" user error.
+        fields = getattr(self.__class__, '__pydantic_fields__', None)
+        for name, field in (fields or {}).items():
             if field.init is not False:
                 continue
             keys = [name]
